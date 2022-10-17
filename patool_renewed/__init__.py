@@ -501,7 +501,7 @@ def cleanup_output_dir(output_dir, archive):
 
 
 def _extract_archive(archive, verbosity=0, interactive=True, output_dir=None,
-                     program=None, format=None, compression=None, password=None):
+                     program=None, format=None, compression=None, password=None, existing_action: str = "rename"):
     """Extract an archive.
     @return: output directory if command is 'extract', else None
     """
@@ -518,7 +518,7 @@ def _extract_archive(archive, verbosity=0, interactive=True, output_dir=None,
         do_cleanup_output_dir = False
     try:
         cmdlist = get_archive_cmdlist(archive, compression, program, verbosity, interactive, output_dir,
-                                      password=password)
+                                      password=password, existing_action=existing_action)
         if cmdlist:
             # an empty command list means the get_archive_cmdlist() function
             # already handled the command (e.g. when it's a builtin Python
@@ -599,13 +599,14 @@ def rmtree_log_error(func, path, exc):
     util.log_error(msg)
 
 
-def extract_archive(archive, verbosity=0, output_dir=None, program=None, interactive=True, password=None):
+def extract_archive(archive, verbosity=0, output_dir=None, program=None, interactive=True, password=None,
+                    existing_action: str = "rename"):
     """Extract given archive."""
     util.check_existing_filename(archive)
     if verbosity >= 0:
         util.log_info("Extracting %s ..." % archive)
     return _extract_archive(archive, verbosity=verbosity, interactive=interactive, output_dir=output_dir,
-                            program=program, password=password)
+                            program=program, password=password, existing_action=existing_action)
 
 
 def test_archive(archive, verbosity=0, program=None, interactive=True, password=None):

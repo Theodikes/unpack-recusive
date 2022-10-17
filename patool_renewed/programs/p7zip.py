@@ -15,20 +15,37 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """Archive commands for the 7z program."""
 
+
+def _add_existing_action(cmdlist: [], existing_action: str = "rename"):
+    """What to do with matching files: add the correct launch option for 7zip"""
+
+    if existing_action == "rename":
+        cmdlist.append('-aou')
+    if existing_action == "skip":
+        cmdlist.append('-aos')
+    if existing_action == "overwrite":
+        cmdlist.append('-aoa')
+
+
 def _maybe_add_password(cmdlist, password):
     if password:
         cmdlist.append('-p%s' % password)
 
-def extract_7z(archive, compression, cmd, verbosity, interactive, output_dir, password=None):
+
+def extract_7z(archive, compression, cmd, verbosity, interactive, output_dir, password=None,
+               existing_action: str = "rename"):
     """Extract a 7z archive."""
     cmdlist = [cmd, 'x']
     if not interactive:
         cmdlist.append('-y')
     _maybe_add_password(cmdlist, password)
-    cmdlist.extend(['-o%s' % output_dir, '--', archive])
+    cmdlist.extend(['-o%s' % output_dir, archive])
+    _add_existing_action(cmdlist, existing_action)
     return cmdlist
 
-def extract_7z_singlefile(archive, compression, cmd, verbosity, interactive, output_dir, password=None):
+
+def extract_7z_singlefile(archive, compression, cmd, verbosity, interactive, output_dir, password=None,
+                          existing_action: str = "rename"):
     """Extract a singlefile archive (e.g. gzip or bzip2) with '7z e'.
     This makes sure a single file and no subdirectories are created,
     which would cause errors with patool repack."""
@@ -36,8 +53,10 @@ def extract_7z_singlefile(archive, compression, cmd, verbosity, interactive, out
     if not interactive:
         cmdlist.append('-y')
     _maybe_add_password(cmdlist, password)
-    cmdlist.extend(['-o%s' % output_dir, '--', archive])
+    cmdlist.extend(['-o%s' % output_dir, archive])
+    _add_existing_action(cmdlist, existing_action)
     return cmdlist
+
 
 extract_bzip2 = \
   extract_gzip = \
@@ -59,7 +78,8 @@ extract_zip = \
   extract_vhd = \
   extract_7z
 
-def list_7z (archive, compression, cmd, verbosity, interactive, password=None):
+
+def list_7z(archive, compression, cmd, verbosity, interactive, password=None):
     """List a 7z archive."""
     cmdlist = [cmd, 'l']
     if not interactive:
@@ -67,6 +87,7 @@ def list_7z (archive, compression, cmd, verbosity, interactive, password=None):
     _maybe_add_password(cmdlist, password)
     cmdlist.extend(['--', archive])
     return cmdlist
+
 
 list_bzip2 = \
   list_gzip = \
@@ -87,7 +108,7 @@ list_bzip2 = \
   list_7z
 
 
-def test_7z (archive, compression, cmd, verbosity, interactive, password=None):
+def test_7z(archive, compression, cmd, verbosity, interactive, password=None):
     """Test a 7z archive."""
     cmdlist = [cmd, 't']
     if not interactive:
@@ -95,6 +116,7 @@ def test_7z (archive, compression, cmd, verbosity, interactive, password=None):
     _maybe_add_password(cmdlist, password)
     cmdlist.extend(['--', archive])
     return cmdlist
+
 
 test_bzip2 = \
   test_gzip = \

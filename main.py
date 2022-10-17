@@ -72,7 +72,7 @@ def unpack_recursive(path: str, password: Optional[str] = None, encrypted_files_
                 rmdir(archive_extract_dir)
 
             extract_archive(path, output_dir=archive_extract_dir, password=password if is_archive_encrypted else None,
-                            verbosity=verbosity_level)
+                            verbosity=verbosity_level, existing_action=result_directory_exists_action)
             if remove_after_unpacking:
                 remove(path)
         except (PatoolError, RuntimeError) as e:
