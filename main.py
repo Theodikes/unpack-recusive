@@ -1,6 +1,6 @@
 from os import listdir, remove, rmdir
 from os.path import isdir, isfile, splitext, basename, join, dirname, exists
-from patool_renewed import get_archive_format, check_archive_format, test_archive, extract_archive
+from patool_renewed import get_archive_format, check_archive_format, test_archive, extract_archive, ArchiveFormats
 from patool_renewed.util import PatoolError
 from typing import Optional
 
@@ -21,10 +21,17 @@ def get_filename_from_path(path: str) -> str:
     return splitext(basename(path))[0]
 
 
+def get_extension_without_dot_from_path(path: str) -> Optional[str]:
+    return splitext(basename(path))[1][1:] if splitext(basename(path))[1] else None
+
+
 def is_archive(file_path) -> bool:
     try:
-        check_archive_format(*get_archive_format(file_path))
-        return True
+        file_extension = get_extension_without_dot_from_path(file_path)
+        if file_extension and (file_extension in ArchiveFormats or file_extension in ['gz', 'bz2', 'lz', 'xz']):
+            check_archive_format(*get_archive_format(file_path))
+            return True
+        return False
     except PatoolError:
         return False
 
