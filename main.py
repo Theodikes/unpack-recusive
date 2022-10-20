@@ -1,7 +1,7 @@
 from os import listdir, remove, rmdir
 from os.path import isdir, isfile, splitext, basename, join, dirname, exists
-from patool_renewed import get_archive_format, check_archive_format, test_archive, extract_archive, ArchiveFormats
-from patool_renewed.util import PatoolError
+from patool_unpack import get_archive_format, check_archive_format, test_archive, extract_archive, ArchiveFormats
+from patool_unpack.util import PatoolError
 from typing import Optional
 
 
@@ -48,7 +48,7 @@ def get_result_extract_dir_renamed_path(archive_extract_dir: str) -> str:
 
 def unpack_recursive(path: str, password: Optional[str] = None, encrypted_files_action: str = "skip",
                      remove_after_unpacking: bool = False, result_directory_exists_action: str = "rename",
-                     verbosity_level: int = 0) -> None:
+                     verbosity_level: int = 0) -> Optional[str]:
 
     try:
         if isdir(path):
@@ -64,7 +64,7 @@ def unpack_recursive(path: str, password: Optional[str] = None, encrypted_files_
                 if verbosity_level > 0:
                     print("dir exists " + archive_extract_dir)
                 if result_directory_exists_action == "skip":
-                    return
+                    return None
                 if result_directory_exists_action == "rename":
                     archive_extract_dir = get_result_extract_dir_renamed_path(archive_extract_dir)
 
@@ -72,7 +72,7 @@ def unpack_recursive(path: str, password: Optional[str] = None, encrypted_files_
                 is_archive_encrypted: bool = is_encrypted(path, verbosity_level)
                 if is_archive_encrypted:
                     if encrypted_files_action == "skip":
-                        return
+                        return None
                     if encrypted_files_action == "manually":
                         password = input(f"Enter [{path}] password: ")
 
@@ -89,10 +89,11 @@ def unpack_recursive(path: str, password: Optional[str] = None, encrypted_files_
                 if verbosity_level >= 0:
                     print(f"Cannot unzip file: {path}")
                     print(e)
-                return
+                return None
 
             unpack_recursive(archive_extract_dir, password, encrypted_files_action, remove_after_unpacking,
                              result_directory_exists_action, verbosity_level)
+            return archive_extract_dir
     except FileNotFoundError as e:
         if verbosity_level >= 0:
             print(e)
