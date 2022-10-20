@@ -50,48 +50,52 @@ def unpack_recursive(path: str, password: Optional[str] = None, encrypted_files_
                      remove_after_unpacking: bool = False, result_directory_exists_action: str = "rename",
                      verbosity_level: int = 0) -> None:
 
-    if isdir(path):
-        for sub_path in listdir(path):
-            unpack_recursive(join(path, sub_path), password, encrypted_files_action, remove_after_unpacking,
-                             result_directory_exists_action, verbosity_level)
+    try:
+        if isdir(path):
+            for sub_path in listdir(path):
+                unpack_recursive(join(path, sub_path), password, encrypted_files_action, remove_after_unpacking,
+                                 result_directory_exists_action, verbosity_level)
 
-    elif isfile(path) and is_archive(path):
-        archive_directory: str = dirname(path)
-        archive_filename_without_extension: str = get_filename_from_path(path)
-        archive_extract_dir: str = join(archive_directory, archive_filename_without_extension)
-        if isdir(archive_extract_dir):
-            if verbosity_level > 0:
-                print("dir exists " + archive_extract_dir)
-            if result_directory_exists_action == "skip":
-                return
-            if result_directory_exists_action == "rename":
-                archive_extract_dir = get_result_extract_dir_renamed_path(archive_extract_dir)
-
-        try:
-            is_archive_encrypted: bool = is_encrypted(path, verbosity_level)
-            if is_archive_encrypted:
-                if encrypted_files_action == "skip":
+        elif isfile(path) and is_archive(path):
+            archive_directory: str = dirname(path)
+            archive_filename_without_extension: str = get_filename_from_path(path)
+            archive_extract_dir: str = join(archive_directory, archive_filename_without_extension)
+            if isdir(archive_extract_dir):
+                if verbosity_level > 0:
+                    print("dir exists " + archive_extract_dir)
+                if result_directory_exists_action == "skip":
                     return
-                if encrypted_files_action == "manually":
-                    password = input(f"Enter [{path}] password: ")
+                if result_directory_exists_action == "rename":
+                    archive_extract_dir = get_result_extract_dir_renamed_path(archive_extract_dir)
 
-            if result_directory_exists_action == "overwrite":
-                rmdir(archive_extract_dir)
+            try:
+                is_archive_encrypted: bool = is_encrypted(path, verbosity_level)
+                if is_archive_encrypted:
+                    if encrypted_files_action == "skip":
+                        return
+                    if encrypted_files_action == "manually":
+                        password = input(f"Enter [{path}] password: ")
 
-            extract_archive(path, output_dir=archive_extract_dir, password=password if is_archive_encrypted else None,
-                            verbosity=verbosity_level, existing_action=result_directory_exists_action)
-            if remove_after_unpacking:
-                remove(path)
-        except (PatoolError, RuntimeError) as e:
-            if exists(archive_extract_dir):
-                rmdir(archive_extract_dir)
-            if verbosity_level >= 0:
-                print(f"\033[91mCannot unzip file: {path}\033[0m")
-                print(f"\033[91m{e}\033[0m")
-            return
+                if result_directory_exists_action == "overwrite":
+                    rmdir(archive_extract_dir)
 
-        unpack_recursive(archive_extract_dir, password, encrypted_files_action, remove_after_unpacking,
-                         result_directory_exists_action, verbosity_level)
+                extract_archive(path, output_dir=archive_extract_dir, existing_action=result_directory_exists_action,
+                                password=password if is_archive_encrypted else None, verbosity=verbosity_level)
+                if remove_after_unpacking:
+                    remove(path)
+            except (PatoolError, RuntimeError) as e:
+                if exists(archive_extract_dir):
+                    rmdir(archive_extract_dir)
+                if verbosity_level >= 0:
+                    print(f"Cannot unzip file: {path}")
+                    print(e)
+                return
+
+            unpack_recursive(archive_extract_dir, password, encrypted_files_action, remove_after_unpacking,
+                             result_directory_exists_action, verbosity_level)
+    except FileNotFoundError as e:
+        if verbosity_level >= 0:
+            print(e)
 
 
 __all__ = [unpack_recursive]
