@@ -2,7 +2,7 @@ from os import listdir, remove, rmdir
 from os.path import isdir, isfile, splitext, basename, join, dirname, exists
 from patool_unpack import get_archive_format, check_archive_format, test_archive, extract_archive, ArchiveFormats
 from patool_unpack.util import PatoolError
-from typing import Optional
+from typing import Optional, List
 
 
 def is_encrypted(path_to_archive: str, verbosity_level: int = 0) -> bool:
@@ -55,6 +55,7 @@ def unpack_recursive(path: str, password: Optional[str] = None, encrypted_files_
             for sub_path in listdir(path):
                 unpack_recursive(join(path, sub_path), password, encrypted_files_action, remove_after_unpacking,
                                  result_directory_exists_action, verbosity_level)
+            return path
 
         elif isfile(path) and is_archive(path):
             archive_directory: str = dirname(path)
@@ -104,7 +105,8 @@ __all__ = [unpack_recursive]
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument("path", type=str, help="Path to file or folder to unzip")
+    parser.add_argument("-i", "--input-paths", type=List[str], help="Paths to files or folders to unzip (at least one)",
+                        nargs="+")
     parser.add_argument("-r", "--remove", help="remove archives after unpacking", action="store_true", default=False)
     parser.add_argument("-pa", "--password-protected-action", type=str, default="skip",
                         choices=["skip", "default", "manually"],
@@ -120,10 +122,19 @@ if __name__ == "__main__":
                              "1 - all important information (default - 0)", )
     args = parser.parse_args()
 
-    start_path: str = args.path
-    if not (isdir(start_path) or is_archive(start_path)):
-        raise Exception("Input path must be a folder or an archive")
+    for start_path in args.input_paths:
+        if not (isdir(start_path) or is_archive(start_path)):
+            raise Exception("Input path must be a folder or an archive, but got: " + start_path)
 
-    unpack_recursive(start_path, remove_after_unpacking=args.remove, password=args.default_password,
-                     verbosity_level=args.log_level, encrypted_files_action=args.password_protected_action,
-                     result_directory_exists_action=args.existing_directory_action)
+        result_dir = unpack_recursive(start_path, remove_after_unpacking=args.remove, password=args.default_password,
+                                      verbosity_level=args.log_level,
+                                      encrypted_files_action=args.password_protected_action,
+                                      result_directory_exists_action=args.existing_directory_action)
+        if args.log_level > 0:
+            if not result_dir:
+                print(f"Unpacking of [{start_path} failed")
+                continue
+            if isdir(start_path):
+                print(f"All archives in folder [{start_path}] unpacked")
+            else:
+                print(f"Archive [{start_path} unpacked into directory {result_dir}")
