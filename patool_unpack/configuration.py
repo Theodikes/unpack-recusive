@@ -11,7 +11,7 @@ original_maintainer = 'Bastian Kleineidam'
 original_maintainer_email = 'bastian.kleineidam@web.de'
 original_url = 'https://wummel.github.io/patool/'
 
-fork_name = 'patool_renewed'
+fork_name = 'patool_unpack'
 fork_version = '0.1.0'
 fork_author = 'Theo'
 fork_maintainer = 'Theo'

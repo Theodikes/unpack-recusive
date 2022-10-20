@@ -24,7 +24,7 @@ import shutil
 import stat
 import importlib
 # PEP 396
-__all__ = ['extract_archive', 'test_archive',
+__all__ = ['extract_archive', 'test_archive', 'ArchiveFormats',
            'program_supports_compression', 'get_archive_format', 'check_archive_format']
 
 
