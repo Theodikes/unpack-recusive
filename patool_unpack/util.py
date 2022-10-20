@@ -197,10 +197,10 @@ def run(cmd, verbosity=0, **kwargs):
     @return: command return code"""
     # Note that shell_quote_nt() result is not suitable for copy-paste
     # (especially on Unix systems), but it looks nicer than shell_quote().
-    if verbosity >= 0:
+    if verbosity > 0:
         log_info("running %s" % " ".join(map(shell_quote_nt, cmd)))
     if kwargs:
-        if verbosity >= 0:
+        if verbosity > 0:
             log_info("    with %s" % ", ".join("%s=%s" % (k, shell_quote(str(v))) for k, v in kwargs.items()))
         if kwargs.get("shell"):
             # for shell calls the command must be a string

@@ -528,7 +528,7 @@ def _extract_archive(archive, verbosity=0, interactive=True, output_dir=None,
             target, msg = cleanup_output_dir(output_dir, archive)
         else:
             target, msg = output_dir, "`%s'" % output_dir
-        if verbosity >= 0:
+        if verbosity > 0:
             util.log_info("... %s extracted to %s." % (archive, msg))
         return target
     finally:
@@ -603,7 +603,7 @@ def extract_archive(archive, verbosity=0, output_dir=None, program=None, interac
                     existing_action: str = "rename"):
     """Extract given archive."""
     util.check_existing_filename(archive)
-    if verbosity >= 0:
+    if verbosity > 0:
         util.log_info("Extracting %s ..." % archive)
     return _extract_archive(archive, verbosity=verbosity, interactive=interactive, output_dir=output_dir,
                             program=program, password=password, existing_action=existing_action)
@@ -612,10 +612,10 @@ def extract_archive(archive, verbosity=0, output_dir=None, program=None, interac
 def test_archive(archive, verbosity=0, program=None, interactive=True, password=None):
     """Test given archive."""
     util.check_existing_filename(archive)
-    if verbosity >= 0:
+    if verbosity > 0:
         util.log_info("Testing %s ..." % archive)
     res = _handle_archive(archive, 'test', verbosity=verbosity, interactive=interactive,
                           program=program, password=password)
-    if verbosity >= 0:
+    if verbosity > 0:
         util.log_info("... tested ok.")
     return res
