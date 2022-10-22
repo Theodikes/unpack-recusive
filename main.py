@@ -2,7 +2,7 @@ from os import listdir, remove, rmdir
 from os.path import isdir, isfile, splitext, basename, join, dirname, exists
 from patool_unpack import get_archive_format, check_archive_format, test_archive, extract_archive, ArchiveFormats
 from patool_unpack.util import PatoolError
-from typing import Optional, List
+from typing import Optional, Tuple
 
 
 def is_encrypted(path_to_archive: str, verbosity_level: int = 0) -> bool:
@@ -67,7 +67,7 @@ def get_result_extract_dir_renamed_path(archive_extract_dir: str) -> str:
     return archive_extract_dir_renamed
 
 
-def unpack_recursive(path: str, encrypted_files_action: str = "skip",  default_password: Optional[str] = None,
+def unpack_recursive(path: str, encrypted_files_action: str = "skip",  default_passwords: Tuple[str] = (),
                      remove_after_unpacking: bool = False, result_directory_exists_action: str = "rename",
                      verbosity_level: int = 0) -> Optional[str]:
     """
@@ -76,8 +76,8 @@ def unpack_recursive(path: str, encrypted_files_action: str = "skip",  default_p
     :param str path: Path (relative or absolute) to archive or folder with archives and subfolders
     :param str encrypted_files_action: What to do with encrypted archives - skip, try to open with the default password
                                        or prompt the user for each archive ("skip", "default" or "manually")
-    :param Optional[str] default_password: Default password for encrypted archives, if None, password-protected archives
-                                           will be skipped (default - None)
+    :param Tuple[str] default_passwords: List of default passwords for encrypted archives, if empty list, all
+                                        password-protected archives will be skipped
     :param bool remove_after_unpacking: Delete archive files after unpacking or not
     :param str result_directory_exists_action: What to do if the final directory after unpacking the archive already
                                                exists or there are duplicates among the file names in the archive:
@@ -95,8 +95,8 @@ def unpack_recursive(path: str, encrypted_files_action: str = "skip",  default_p
         # If the path is a directory, recursively call the same function for all subfolders
         if isdir(path):
             for sub_path in listdir(path):
-                unpack_recursive(join(path, sub_path), default_password, encrypted_files_action, remove_after_unpacking,
-                                 result_directory_exists_action, verbosity_level)
+                unpack_recursive(join(path, sub_path), encrypted_files_action, default_passwords,
+                                 remove_after_unpacking, result_directory_exists_action, verbosity_level)
             # Return the path to the source (input) directory, since all the archives in it will be unpacked inside it
             return path
 
@@ -112,11 +112,27 @@ def unpack_recursive(path: str, encrypted_files_action: str = "skip",  default_p
             # If archive is encrypted, check what action the user chose, if not 'skip' - try to decrypt
             # archive for verification, if an error occurs - exit
             is_archive_encrypted: bool = is_encrypted(path, verbosity_level)
+            default_password: Optional[str] = None
             if is_archive_encrypted:
                 if encrypted_files_action == "skip":
                     return None
                 if encrypted_files_action == "manually":
                     default_password = input(f"Enter [{path}] password: ")
+                # try to open the archive using all standard passwords provided by the user
+                if encrypted_files_action == "default":
+                    for password in default_passwords:
+                        try:
+                            test_archive(path, -1, password=password)
+                            # if no error was thrown, the password is suitable, you can save it and abort the checks
+                            default_password = password
+                            break
+                        except PatoolError:
+                            pass
+                    # If all passwords were checked, but no suitable one was found,
+                    # there is no point in trying to unpack the archive again - stop function execution
+                    else:
+                        return None
+                # check if the archive is opened with the password specified by the user, if not, exit the function
                 try:
                     test_archive(path, -1, password=default_password)
                 except PatoolError:
@@ -150,7 +166,7 @@ def unpack_recursive(path: str, encrypted_files_action: str = "skip",  default_p
                 return None
 
             # start searching for archives in the folder with the elements of the just unpacked archive
-            unpack_recursive(archive_extract_dir, default_password, encrypted_files_action, remove_after_unpacking,
+            unpack_recursive(archive_extract_dir, encrypted_files_action, default_passwords, remove_after_unpacking,
                              result_directory_exists_action, verbosity_level)
 
             return archive_extract_dir
@@ -166,15 +182,16 @@ __all__ = [unpack_recursive]
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument("-i", "--input-paths", type=List[str], help="Paths to files or folders to unzip (at least one)",
+    parser.add_argument("-i", "--input-paths", type=str, help="Paths to files or folders to unzip (at least one)",
                         nargs="+")
     parser.add_argument("-r", "--remove", help="remove archives after unpacking", action="store_true", default=False)
     parser.add_argument("-pa", "--password-protected-action", type=str, default="skip",
                         choices=["skip", "default", "manually"],
                         help="What to do with password-encrypted files: skip, try to use one password provided by user"
                              " or write password manually for any encrypted file (default - 'skip')")
-    parser.add_argument("-pwd", "--default-password", type=str, help="default password for encrypted archives",
-                        default=None, metavar="DEFAULT PASSWORD")
+    parser.add_argument("-pwds", "--default-passwords", type=str, default=None, metavar="DEFAULT PASSWORD",
+                        help="list of default passwords for encrypted archives"
+                             "(if password-protected action set as 'default)", nargs="*", action="store")
     parser.add_argument("-e", "--existing-directory-action", type=str,
                         choices=["rename", "overwrite", "skip"], default="rename",
                         help="Action, if destination directory after unpacking already exists (default - 'rename')")
@@ -188,7 +205,7 @@ if __name__ == "__main__":
             raise Exception("Input path must be a folder or an archive, but got: " + start_path)
 
         result_dir = unpack_recursive(start_path, remove_after_unpacking=args.remove,
-                                      default_password=args.default_password, verbosity_level=args.log_level,
+                                      default_passwords=args.default_passwords, verbosity_level=args.log_level,
                                       encrypted_files_action=args.password_protected_action,
                                       result_directory_exists_action=args.existing_directory_action)
         if args.log_level > 0:
