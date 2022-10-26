@@ -191,10 +191,6 @@ def unpack_recursive(path: str, encrypted_files_action: Literal["skip", "default
 # If the project is installed as a module, only the 'unpack_recursive' function is available for external use.
 __all__ = [unpack_recursive]
 
-# noinspection PyTypeChecker
-# Export one function as a whole module so that you can use the package by simply importing unpack_recursive directly
-sys.modules[__name__] = unpack_recursive
-
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser()
