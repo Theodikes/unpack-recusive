@@ -28,6 +28,7 @@ setuptools.setup(
     url="https://github.com/Theodikes/unpack-recursive",
     install_requires=["typing_extensions"],
     packages=setuptools.find_packages(),
+    entry_points={'console_scripts': ['unpack-recursive = console_app:main']},
     classifiers=[
         'Programming Language :: Python',
         'Programming Language :: Python :: 3.6',
