@@ -1,8 +1,14 @@
+import sys
 from os import listdir, remove, rmdir
 from os.path import isdir, isfile, splitext, basename, join, dirname, exists
 from .patool_unpack import get_archive_format, check_archive_format, test_archive, extract_archive, ArchiveFormats
 from .patool_unpack.util import PatoolError
 from typing import Optional, Tuple
+
+if sys.version_info > (3, 7):
+    from typing import Literal
+else:
+    from typing_extensions import Literal
 
 
 def is_encrypted(path_to_archive: str, verbosity_level: int = 0) -> bool:
@@ -67,24 +73,30 @@ def get_result_extract_dir_renamed_path(archive_extract_dir: str) -> str:
     return archive_extract_dir_renamed
 
 
-def unpack_recursive(path: str, encrypted_files_action: str = "skip",  default_passwords: Tuple[str] = (),
-                     remove_after_unpacking: bool = False, result_directory_exists_action: str = "rename",
+def unpack_recursive(path: str, encrypted_files_action: Literal["skip", "default", "manually"] = "skip",
+                     default_passwords: Tuple[str] = (), remove_after_unpacking: bool = False,
+                     result_directory_exists_action: Literal["skip", "rename", "overwrite"] = "rename",
                      verbosity_level: int = 0) -> Optional[str]:
     """
     Unpacks the specified archive or all archives in the specified folder and their subfolders
 
     :param str path: Path (relative or absolute) to archive or folder with archives and subfolders
-    :param str encrypted_files_action: What to do with encrypted archives - skip, try to open with the default password
-                                       or prompt the user for each archive ("skip", "default" or "manually")
+    :param Literal["skip", "default", "manually"] encrypted_files_action:  What to do with encrypted archives - skip,
+                                       try to open with the default passwords given by user
+                                       or prompt the user for each archive. Default value - 'skip'
+
     :param Tuple[str] default_passwords: List of default passwords for encrypted archives, if empty list, all
-                                        password-protected archives will be skipped
+                                       password-protected archives will be skipped
+
     :param bool remove_after_unpacking: Delete archive files after unpacking or not
-    :param str result_directory_exists_action: What to do if the final directory after unpacking the archive already
-                                               exists or there are duplicates among the file names in the archive:
-                                               skip existing, overwrite existing or rename new files/folders.
-                                               Allowed values - 'skip', 'overwrite', 'rename'. Default - 'rename'
+    :param Literal["skip", "rename", "overwrite"] result_directory_exists_action:
+                                       What to do if the final directory after unpacking the archive already
+                                       exists or there are duplicates among the file names in the archive:
+                                       skip existing, overwrite existing or rename new files/folders. Default - 'rename'
+
     :param int verbosity_level: Logging to user in console: -1 - completely absent, 0 - only errors,
-                            1 - all important information (default - 0)
+                                       1 - all important information (default - 0)
+
     :returns: path to the folder where the archive was unpacked, or to the root folder
               where the archives were located or 'None', if unpacking fails
     :rtype: Optional[string]
@@ -178,6 +190,10 @@ def unpack_recursive(path: str, encrypted_files_action: str = "skip",  default_p
 
 # If the project is installed as a module, only the 'unpack_recursive' function is available for external use.
 __all__ = [unpack_recursive]
+
+# noinspection PyTypeChecker
+# Export one function as a whole module so that you can use the package by simply importing unpack_recursive directly
+sys.modules[__name__] = unpack_recursive
 
 if __name__ == "__main__":
     import argparse
