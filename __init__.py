@@ -1,8 +1,8 @@
 import sys
 from os import listdir, remove, rmdir
 from os.path import isdir, isfile, splitext, basename, join, dirname, exists
-from .patool_unpack import get_archive_format, check_archive_format, test_archive, extract_archive, ArchiveFormats
-from .patool_unpack.util import PatoolError
+from patool_unpack import get_archive_format, check_archive_format, test_archive, extract_archive, ArchiveFormats
+from patool_unpack.util import PatoolError
 from typing import Optional, Tuple
 
 if sys.version_info > (3, 7):
