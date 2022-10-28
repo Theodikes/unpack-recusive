@@ -512,7 +512,7 @@ def _extract_archive(archive, verbosity=0, interactive=True, output_dir=None,
     check_program_compression(archive, 'extract', program, compression)
     get_archive_cmdlist = get_archive_cmdlist_func(program, 'extract', format)
     if output_dir is None:
-        output_dir = util.create_temporary_directory(dir=".")
+        output_dir = util.create_temporary_directory(dir="")
         do_cleanup_output_dir = True
     else:
         do_cleanup_output_dir = False

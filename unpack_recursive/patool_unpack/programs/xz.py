@@ -49,7 +49,7 @@ def extract_lzma(archive, compression, cmd, verbosity, interactive, output_dir):
         cmdlist.append('-v')
     outfile = util.get_single_outfile(output_dir, archive)
     cmdlist.extend(['-c', '-d', '--', util.shell_quote(archive), '>',
-        util.shell_quote(outfile)])
+                    util.shell_quote(outfile)])
     return (cmdlist, {'shell': True})
 
 

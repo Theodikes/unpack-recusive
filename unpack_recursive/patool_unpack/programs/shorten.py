@@ -21,7 +21,7 @@ def extract_shn (archive, compression, cmd, verbosity, interactive, output_dir):
     cmdlist = [util.shell_quote(cmd)]
     outfile = util.get_single_outfile(output_dir, archive, extension=".wav")
     cmdlist.extend(['-x', '-', util.shell_quote(outfile), '<',
-        util.shell_quote(archive)])
+                    util.shell_quote(archive)])
     return (cmdlist, {'shell': True})
 
 
@@ -31,5 +31,5 @@ def create_shn (archive, compression, cmd, verbosity, interactive, filenames):
         raise util.PatoolError("multiple filenames for shorten not supported")
     cmdlist = [util.shell_quote(cmd)]
     cmdlist.extend(['-', util.shell_quote(archive), '<',
-        util.shell_quote(filenames[0])])
+                    util.shell_quote(filenames[0])])
     return (cmdlist, {'shell': True})

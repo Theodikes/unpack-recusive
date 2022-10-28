@@ -1,5 +1,6 @@
-from __init__ import unpack_recursive, is_archive
+from .__init__ import unpack_recursive, is_archive
 from os.path import isdir
+
 
 def main():
     import argparse
