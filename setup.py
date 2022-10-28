@@ -19,7 +19,7 @@ with open("README.md", "r") as readme_file:
 
 setuptools.setup(
     name="unpack_recursive",
-    version="1.0.5",
+    version="1.1.0",
     author="Theodike",
     author_email="gvedichi@gmail.com",
     description="Recursive unpacking any type of archives",
