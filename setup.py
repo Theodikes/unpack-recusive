@@ -19,7 +19,7 @@ with open("README.md", "r") as readme_file:
 
 setuptools.setup(
     name="unpack_recursive",
-    version="1.0.4",
+    version="1.0.5",
     author="Theodike",
     author_email="gvedichi@gmail.com",
     description="Recursive unpacking any type of archives",
@@ -29,7 +29,7 @@ setuptools.setup(
     url="https://github.com/Theodikes/unpack-recursive",
     install_requires=["typing_extensions"],
     packages=setuptools.find_packages('.', exclude='test'),
-    entry_points={'console_scripts': ['unpack_recursive = console_app:main']},
+    entry_points={'console_scripts': ['unpack-recursive = unpack_recursive.console_app:main']},
     classifiers=[
         'Programming Language :: Python',
         'Programming Language :: Python :: 3.6',
