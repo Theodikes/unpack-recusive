@@ -3,7 +3,7 @@ from os import listdir, remove, rmdir
 from os.path import isdir, isfile, splitext, basename, join, dirname, exists
 from patool_unpack import get_archive_format, check_archive_format, test_archive, extract_archive, ArchiveFormats
 from patool_unpack.util import PatoolError
-from typing import Optional, Tuple
+from typing import Optional, Tuple, List
 
 if sys.version_info > (3, 7):
     from typing import Literal
@@ -106,11 +106,16 @@ def unpack_recursive(path: str, encrypted_files_action: Literal["skip", "default
     try:
         # If the path is a directory, recursively call the same function for all subfolders
         if isdir(path):
+            # List for the result paths of all unpacked archives from the current directory
+            unpacked_subpaths: List[Optional[str]] = []
             for sub_path in listdir(path):
-                unpack_recursive(join(path, sub_path), encrypted_files_action, default_passwords,
-                                 remove_after_unpacking, result_directory_exists_action, verbosity_level)
+                sub_result_path = unpack_recursive(join(path, sub_path), encrypted_files_action, default_passwords,
+                                                   remove_after_unpacking, result_directory_exists_action,
+                                                   verbosity_level)
+                unpacked_subpaths.append(sub_result_path)
             # Return the path to the source (input) directory, since all the archives in it will be unpacked inside it
-            return path
+            # If no archives in source directory, or all archives were skipped / unpacked incorrectly, return None
+            return path if any(unpacked_subpaths) else None
 
         # If the file is an archive, try to unpack it
         elif isfile(path) and is_archive(path):
@@ -182,6 +187,8 @@ def unpack_recursive(path: str, encrypted_files_action: Literal["skip", "default
                              result_directory_exists_action, verbosity_level)
 
             return archive_extract_dir
+
+        return None
 
     except FileNotFoundError as e:
         if verbosity_level >= 0:
